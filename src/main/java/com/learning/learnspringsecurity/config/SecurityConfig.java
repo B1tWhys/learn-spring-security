@@ -1,5 +1,6 @@
 package com.learning.learnspringsecurity.config;
 
+import com.azure.spring.aad.webapp.AADWebSecurityConfigurerAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,12 +16,11 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 public class SecurityConfig {
     @Configuration
     @EnableWebSecurity
-    @Slf4j
     @Order(0)
     public static class UnauthedSecurityConfig extends WebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.requestMatchers().antMatchers("/unauthed", "/login")
+            http.requestMatchers().antMatchers("/unauthed")
                     .and()
                     .authorizeRequests(authorize -> authorize.anyRequest().permitAll());
         }
@@ -28,7 +28,6 @@ public class SecurityConfig {
 
     @Configuration
     @EnableWebSecurity
-    @Slf4j
     @Order(1)
     public static class BasicAuthSecurityConfig extends WebSecurityConfigurerAdapter {
         @Bean
@@ -47,4 +46,30 @@ public class SecurityConfig {
             .httpBasic(Customizer.withDefaults());
         }
     }
+
+    @Configuration
+    @EnableWebSecurity
+    @Order(2)
+    public static class FullOauth2SecurityConfig extends AADWebSecurityConfigurerAdapter {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.requestMatchers()
+                    .antMatchers("/fullOauth2", "/fullOauth2/**", "/oauth2/**", "/login/**")
+                    .and();
+            super.configure(http);
+            http.authorizeRequests()
+                    .anyRequest()
+                    .authenticated();
+        }
+    }
+
+    @Configuration
+    @EnableWebSecurity
+    public static class DefaultUnauthedConfig extends WebSecurityConfigurerAdapter {
+        @Override
+        protected void configure(HttpSecurity http) throws Exception {
+            http.authorizeRequests().anyRequest().permitAll();
+        }
+    }
+
 }
