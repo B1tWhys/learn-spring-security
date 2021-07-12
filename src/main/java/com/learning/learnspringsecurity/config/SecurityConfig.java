@@ -1,7 +1,9 @@
 package com.learning.learnspringsecurity.config;
 
+import com.azure.spring.aad.webapi.AADResourceServerWebSecurityConfigurerAdapter;
 import com.azure.spring.aad.webapp.AADWebSecurityConfigurerAdapter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -11,6 +13,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.oauth2.server.resource.BearerTokenAuthenticationToken;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
 public class SecurityConfig {
@@ -65,11 +68,27 @@ public class SecurityConfig {
 
     @Configuration
     @EnableWebSecurity
-    public static class DefaultUnauthedConfig extends WebSecurityConfigurerAdapter {
+    @Order(3)
+    public static class JwtVerificationFlow extends AADResourceServerWebSecurityConfigurerAdapter {
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.authorizeRequests().anyRequest().permitAll();
+            http.requestMatchers()
+                    .antMatchers("/jwtAuthentication", "/jwtAuthentication/**")
+                    .and();
+            super.configure(http);
+            http.authorizeRequests()
+                    .anyRequest().authenticated();
+//                    .hasRole("testscope.read")
         }
     }
+
+//    @Configuration
+//    @EnableWebSecurity
+//    public static class DefaultUnauthedConfig extends WebSecurityConfigurerAdapter {
+//        @Override
+//        protected void configure(HttpSecurity http) throws Exception {
+//            http.authorizeRequests().anyRequest().permitAll();
+//        }
+//    }
 
 }
